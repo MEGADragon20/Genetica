@@ -1,0 +1,35 @@
+The files in this folder directory have all different use cases:
+
+here is a brief summary of the content of the different files:
+
+/common.py
+-> blobs try to get food to reproduce
+
+/speed.py
+-> genetic inheritance of speed
+-> mutations > randomness to make evolution possible
+-> round based > click to start next one
+
+/speed_adapted.py
+-> same as speed.py
+-> food count is count of blobs > more extinction
+
+/2gens.py
+-> same as speed.py, but added inheritance of precision
+-> display of the count of genes over time after simulation
+-> automatically start the next round
+
+/3gens.py
+-> same as 2gens.py, but added inheritance of size
+-> much smaller blobs are addible
+
+/3gens_adapted.py
+-> same as 3gens.py
+-> count of children dependent on the count of food the blob ate 
+
+/days.py
+-> same as 2gens.py, but overworked simualtion system
+-> sexual reproduction instead of duplication
+-> No round based simulation
+-> less blobs
+-> dominant and recessive genes to make simulation more realistic
