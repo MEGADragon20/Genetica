@@ -11,6 +11,7 @@ from matplotlib.collections import LineCollection
 import matplotlib.pyplot as plt
 import numpy as np
 import time
+import json
 
 # chart setup
 plt.axis([0, 2, 0, 100])
@@ -41,7 +42,7 @@ def mutate(value):
 def mutate_colour(colour):
     colours = [colour]+["red", "blue"]
     weights = [0.9, 0.05, 0.05]
-    return random.choices(colours, weights)
+    return random.choices(colours, weights)[0]
 
 def check_if_potential_partner(blob1, blob2):
     delta_speed = abs(blob1.speed - blob2.speed)
@@ -52,7 +53,6 @@ def check_if_potential_partner(blob1, blob2):
 
 
 def reproduce(blob1, blob2):
-    print("reproducing")
     bgenes1 = blob1.binary_genes
     bgenes2 = blob2.binary_genes
     dgenes1 = blob1.decimal_genes
@@ -75,20 +75,26 @@ def reproduce(blob1, blob2):
 
 
 class Screen(arcade.Window):
-    def __init__(self, width, height):
-        super().__init__(width=width, height=height, title="Experiment", resizable=True)
+    def __init__(self, start_blobs, start_foods):
+        super().__init__(width=800, height=800, title="Experiment", resizable=True)
         self.blobs = arcade.SpriteList()
         self.foods = arcade.SpriteList()
         self.playing = False
 
+        self.start_blobs = start_blobs
+        self.start_foods = start_foods
+
         self.speed_data = []
         self.precision_data = []
+        self.number_of_blobs = [[],[]]
+        self.number_of_blobs_counter = 0
+
     def on_key_press(self, symbol, modifiers):
         if symbol == arcade.key.ESCAPE:
             self.close()
     def setup(self):
         arcade.set_background_color(arcade.color.GRANNY_SMITH_APPLE)
-        for _ in range(20):  
+        for _ in range(self.start_blobs):  
             position = make_position()
             blob_decimal_genes = {
                 "speed": 1,
@@ -100,10 +106,10 @@ class Screen(arcade.Window):
             blob = Blob(position, blob_binary_genes, blob_decimal_genes, self.foods, self.blobs)
             blob.energy = energie
             self.blobs.append(blob)
-        self.counter = 20
+        self.counter = time.time()
         self.setup_foods()
     def setup_foods(self):
-        for _ in range(100):
+        for _ in range(self.start_foods):
             food = arcade.Sprite(filename="data/food.png", center_x=random.randint(20, 780), center_y=random.randint(20, 780))
             self.foods.append(food)
 
@@ -120,9 +126,7 @@ class Screen(arcade.Window):
                 i.kill()
                 print(len(self.blobs))
 
-        self.counter += delta_time
-        if self.counter == 10:
-            print("new")
+        if time.time() - self.counter > 1:
             # append graph
             ty = {round(x, 1): 0 for x in [i / 10 for i in range(1, 30)]}
             py = {round(x, 1): 0 for x in [i / 10 for i in range(1, 30)]}
@@ -143,21 +147,12 @@ class Screen(arcade.Window):
 
             self.speed_data.append([tx, ty_values])
             self.precision_data.append([px, py_values])
-                
-                            
-            # setup()
-            self.setup_foods()
-            for blob in self.blobs:
-                blob.energy = energie
-                blob.foods = self.foods
-            self.counter = 0
+            self.number_of_blobs[0].append(self.number_of_blobs_counter)
+            self.number_of_blobs[1].append(len(self.blobs))
+            self.number_of_blobs_counter += 1
+            self.counter = time.time()
         while len(self.foods) < 100:
             self.foods.append(arcade.Sprite("data/food.png", center_x=random.randint(20, 780), center_y=random.randint(20, 780)))
-   #def on_mouse_press(self, x, y, button, modifiers):
-   #    clicked_blobs = arcade.get_sprites_at_point((x, y), [self.blobs])
-   #    if clicked_blobs:
-   #        for i in clicked_blobs:
-   #            print(i.genes)
         
 
 
@@ -171,8 +166,8 @@ class Blob(arcade.Sprite):
         self.energy = 0
         self.speed = decimal_genes["speed"] # value for speed
         self.precision = decimal_genes["precision"] # ""__"" precision
-        color = binary_genes["colour"]       
-        self.texture = arcade.load_texture(f"data/{color}.png")
+        colour = binary_genes["colour"]
+        self.texture = arcade.load_texture("data/" + colour + ".png")
         self.binary_genes = binary_genes
         self.decimal_genes = decimal_genes
         self.foods = foods
@@ -225,23 +220,45 @@ class Blob(arcade.Sprite):
                         print(len(self.blobs))
                         self.last_reproduction_time = time.time()
 
+def add_log_entry(data, screen):
+    entry = {}
+    entry["start_blobs"] = screen.start_blobs
+    entry["start_foods"] = screen.start_foods
+    entry["data"] = {}
+    for i in range(len(data[0])):
+        entry["data"][data[0][i]] = data[1][i]
+    
+    try:
+        with open("logs/sexual_reproduction.json", "r") as f:
+            a = json.load(f)
+    except FileNotFoundError:
+        a = {}
+    
+    a[time.time()] = entry
+    
+    with open("logs/sexual_reproduction.json", "w") as f:
+        json.dump(a, f, indent=4)
+
 
 # Main code to run the simulation
 def main():
-    screen = Screen(800, 800)
+    screen = Screen(25, 100)
     screen.setup()
     arcade.run()
 
     sd = screen.speed_data 
     pd = screen.precision_data
+    nob = screen.number_of_blobs
+    ax2.plot(nob[0], nob[1], color = "#273175")
+    add_log_entry(nob, screen)
+
+
     for i in range(5):
         for i in range(len(sd)):
             ax1.clear()
-            ax2.clear()
             ax1.plot(sd[i][0], sd[i][1], color = "red")
-            ax2.plot(pd[i][0], pd[i][1], color = "green")
+            ax1.plot(pd[i][0], pd[i][1], color = "green")
             plt.pause(1)
-
 
 if __name__ == "__main__":
     main()

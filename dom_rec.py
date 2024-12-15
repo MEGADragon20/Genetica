@@ -90,12 +90,14 @@ class Screen(arcade.Window):
 
         self.speed_data = []
         self.precision_data = []
+        self.count_data = [[],[]]
+        self.count_data_counter = 0
     def on_key_press(self, symbol, modifiers):
         if symbol == arcade.key.ESCAPE:
             self.close()
     def setup(self):
         arcade.set_background_color(arcade.color.GRANNY_SMITH_APPLE)
-        for _ in range(15):  
+        for _ in range(110):  
             position = make_position()
             blob_genes = {
                 "speed": {
@@ -110,7 +112,7 @@ class Screen(arcade.Window):
             blob = Blob(position, blob_genes, self.foods, self.blobs)
             blob.energy = energie
             self.blobs.append(blob)
-        self.counter = 20
+        self.counter = time.time()
         self.setup_foods()
     def setup_foods(self):
         for _ in range(100):
@@ -130,9 +132,7 @@ class Screen(arcade.Window):
                 i.kill()
                 print(len(self.blobs))
 
-        self.counter += delta_time
-        if self.counter == 10:
-            print("new")
+        if time.time() - self.counter > 1:
             # append graph
             ty = {round(x, 1): 0 for x in [i / 10 for i in range(1, 30)]}
             py = {round(x, 1): 0 for x in [i / 10 for i in range(1, 30)]}
@@ -153,21 +153,13 @@ class Screen(arcade.Window):
 
             self.speed_data.append([tx, ty_values])
             self.precision_data.append([px, py_values])
-                
+            self.count_data[0].append(self.count_data_counter)
+            self.count_data[1].append(len(self.blobs))
+            self.count_data_counter += 1
                             
-            # setup()
-            self.setup_foods()
-            for blob in self.blobs:
-                blob.energy = energie
-                blob.foods = self.foods
-            self.counter = 0
+            self.counter = time.time()
         while len(self.foods) < 100:
             self.foods.append(arcade.Sprite("data/food.png", center_x=random.randint(20, 780), center_y=random.randint(20, 780)))
-   #def on_mouse_press(self, x, y, button, modifiers):
-   #    clicked_blobs = arcade.get_sprites_at_point((x, y), [self.blobs])
-   #    if clicked_blobs:
-   #        for i in clicked_blobs:
-   #            print(i.genes)
         
 
 
@@ -222,18 +214,25 @@ class Blob(arcade.Sprite):
             for i in self.foods:
                 if arcade.check_for_collision(self, i):
                     self.foods.remove(i)
-                    self.energy += 100
+                    self.energy += 110
             for i in self.blobs:
                 if self != i and arcade.check_for_collision(self, i):
-                    if check_if_potential_partner(self, i) and time.time() - self.last_reproduction_time >= 5:
+                    if check_if_potential_partner(self, i) and time.time() - self.last_reproduction_time >= 5 and self.energy >= 400 and i.energy >= 400:
                         new_blob = reproduce(self, i)
                         new_blob.energy = 300
+                        parent_A_before = self.energy
+                        parent_B_before = i.energy
+                        self.energy -= 200
+                        i.energy -= 200
                         self.blobs.append(new_blob)
-                        print(len(self.blobs))
                         self.last_reproduction_time = time.time()
+                        i.last_reproduction_time = time.time()
+                        print(f"Reproduction: {parent_A_before} + {parent_B_before} -> {self.energy} + {i.energy}")
+
+                        
 
 
-# Main code to run the simulation
+#run the simulation
 def main():
     screen = Screen(800, 800)
     screen.setup()
@@ -241,14 +240,16 @@ def main():
 
     sd = screen.speed_data 
     pd = screen.precision_data
+    cot = screen.count_data # count overe time
+    print("cot", cot)
+    ax2.plot(cot[0], cot[1], color = "#651122")
     for i in range(5):
         for i in range(len(sd)):
             ax1.clear()
-            ax2.clear()
             ax1.plot(sd[i][0], sd[i][1], color = "red")
-            ax2.plot(pd[i][0], pd[i][1], color = "green")
+            ax1.plot(pd[i][0], pd[i][1], color = "green")
             plt.pause(1)
-
+    
 
 if __name__ == "__main__":
     main()
