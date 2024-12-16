@@ -213,11 +213,13 @@ class Blob(arcade.Sprite):
                     self.energy += 100
             for i in self.blobs:
                 if self != i and arcade.check_for_collision(self, i):
-                    if check_if_potential_partner(self, i) and time.time() - self.last_reproduction_time >= 5:
+                    if check_if_potential_partner(self, i) and time.time() - self.last_reproduction_time >= 5 and self.energy >= 200 and i.energy >= 200:
                         new_blob = reproduce(self, i)
                         new_blob.energy = 300
                         self.blobs.append(new_blob)
                         print(len(self.blobs))
+                        i.energy -= 200
+                        self.energy -= 200
                         self.last_reproduction_time = time.time()
 
 def add_log_entry(data, screen):
