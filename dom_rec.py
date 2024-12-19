@@ -97,7 +97,7 @@ class Screen(arcade.Window):
             self.close()
     def setup(self):
         arcade.set_background_color(arcade.color.GRANNY_SMITH_APPLE)
-        for _ in range(110):  
+        for _ in range(115):  
             position = make_position()
             blob_genes = {
                 "speed": {

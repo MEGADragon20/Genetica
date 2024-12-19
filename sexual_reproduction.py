@@ -3,6 +3,8 @@ Genetic heritance of speed and precision
 
 """
 energie = 500 # energy count
+START_BLOBS = 80
+START_FOODS = 100
 
 import arcade
 import random
@@ -58,7 +60,7 @@ def reproduce(blob1, blob2):
     dgenes1 = blob1.decimal_genes
     dgenes2 = blob2.decimal_genes
 
-    bgenes0 = {} # binarygenes of offspring eg. red or blue     purple 
+    bgenes0 = {} # binarygenes of offspring eg. red or blue  
     dgenes0 = {} # decimal genes of offspring eg. speed, size
 
     for i in bgenes1:
@@ -213,13 +215,13 @@ class Blob(arcade.Sprite):
                     self.energy += 100
             for i in self.blobs:
                 if self != i and arcade.check_for_collision(self, i):
-                    if check_if_potential_partner(self, i) and time.time() - self.last_reproduction_time >= 5 and self.energy >= 200 and i.energy >= 200:
+                    if check_if_potential_partner(self, i) and time.time() - self.last_reproduction_time >= 5 and self.energy >= 150 and i.energy >= 150:
                         new_blob = reproduce(self, i)
-                        new_blob.energy = 300
+                        new_blob.energy = 500
                         self.blobs.append(new_blob)
                         print(len(self.blobs))
-                        i.energy -= 200
-                        self.energy -= 200
+                        i.energy -= 150
+                        self.energy -= 150
                         self.last_reproduction_time = time.time()
 
 def add_log_entry(data, screen):
@@ -244,7 +246,7 @@ def add_log_entry(data, screen):
 
 # Main code to run the simulation
 def main():
-    screen = Screen(25, 100)
+    screen = Screen(START_BLOBS, START_FOODS)
     screen.setup()
     arcade.run()
 
