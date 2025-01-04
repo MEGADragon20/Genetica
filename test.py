@@ -1,9 +1,4 @@
-import random 
-
-def mutate_colour(colour):
-    colours = [colour]+["red", "blue"]
-    weights = [0.9, 0.05, 0.05]
-    return random.choices(colours, weights)
-
-for i in range(100):
-    print(mutate_colour("red"))
+l = [1,2,3,4,5]
+for i in range(len(l)):
+    l[i] += 1
+print(l)
